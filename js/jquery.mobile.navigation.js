@@ -232,6 +232,9 @@
 
 		//will be defined when a link is clicked and given an active class
 		$activeClickedLink = null,
+		
+		//popstate delayed
+		popStateEnabled = false,
 
 		//urlHistory is purely here to make guesses at whether the back or forward button was clicked
 		//and provide an appropriate transition
@@ -807,7 +810,7 @@
 		// for the dialog content to be used in the hash. Instead, we want
 		// to append the dialogHashKey to the url of the current page.
 		if ( isDialog && active ) {
-			url = active.url + dialogHashKey;
+			url =  ( $.support.pushState ? "" : active.url ) + dialogHashKey;
 		}
 
 		// Set the location hash.
@@ -1026,11 +1029,17 @@
 	});
 
 	//hashchange event handler
-	$window.bind( "hashchange", function( e, triggered ) {
+	$window.bind( "hashchange popstate", function( e, triggered ) {
 		//find first page via hash
-		var to = path.stripHash( location.hash ),
+		var to = e.type === "popstate" && popStateEnabled && location.href || path.stripHash( location.hash ),
 			//transition is false if it's the first page, undefined otherwise (and may be overridden by default)
 			transition = $.mobile.urlHistory.stack.length === 0 ? "none" : undefined;
+		
+		//chrome (maybe others?) fire popstate on load	
+		if( e.type === "popstate" && !popStateEnabled ){
+			popStateEnabled = true;
+			return;
+		}	
 
 		//if listening is disabled (either globally or temporarily), or it's a dialog hash
 		if( !$.mobile.hashListeningEnabled || urlHistory.ignoreNextHashChange ) {
@@ -1061,6 +1070,16 @@
 				// to a dialog use the dialog objected saved in the stack
 				urlHistory.directHashChange({	currentUrl: to, isBack: setTo, isForward: setTo	});
 			}
+		}
+		else if( e.type !== "popstate" && to.indexOf( dialogHashKey ) < 0 && to.indexOf( "&" + $.mobile.subPageUrlKey ) < 0  ){
+			var url = path.stripHash( location.hash );
+			popStateEnabled = true;
+			history.replaceState({ "url": url }, document.title, url );
+			return;
+		}
+		
+		if( to.indexOf( dialogHashKey ) > -1){
+			return;
 		}
 
 		//if to is defined, load it
