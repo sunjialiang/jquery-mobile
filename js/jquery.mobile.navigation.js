@@ -943,7 +943,9 @@
 
 
 	//click routing - direct to HTTP or Ajax, accordingly
-	$( document ).bind( "click", function( event ) {
+	//bind to vclick to allow for early default prevention on touch events.
+	//still bind to click for real click handling of non-ajax links, even on touch-supporting devices
+	$( document ).bind( "vclick click", function( event ) {
 		var link = findClosestLink( event.target );
 		if ( !link ) {
 			return;
@@ -1022,7 +1024,8 @@
 
 			//this may need to be more specific as we use data-rel more
 			role = $link.attr( "data-" + $.mobile.ns + "rel" ) || "page";
-
+			
+		
 		$.mobile.changePage( href, { transition: transition, reverse: reverse, role: role } );
 		event.preventDefault();
 	});
