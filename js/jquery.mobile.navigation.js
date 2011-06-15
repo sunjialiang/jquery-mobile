@@ -385,10 +385,10 @@
 
 	//function for transitioning between two existing pages
 	function transitionPages( toPage, fromPage, transition, reverse ) {
-		$.mobile.silentScroll();
 
 		//get current scroll distance
-		var currScroll = $window.scrollTop();
+		var currScroll = $window.scrollTop(),
+			newScrollTop = toPage.data( "lastScroll" ) || 0;
 
 		if( fromPage ) {
 			//set as data for returning to that spot
@@ -402,7 +402,12 @@
 
 		//clear page loader
 		$.mobile.hidePageLoadingMsg();
-
+		
+		//if there's a scroll distance in to factor in, set the TO page to line up to its destination
+		if( newScrollTop || currScroll ){
+			toPage.css( "top", -newScrollTop + currScroll );
+		}
+		
 		//find the transition handler for the specified transition. If there
 		//isn't one in our transitionHandlers dictionary, use the default one.
 		//call the handler immediately to kick-off the transition.
@@ -410,10 +415,16 @@
 			promise = th( transition, reverse, toPage, fromPage );
 
 		promise.done(function() {
-			//jump to top or prev scroll, sometimes on iOS the page has not rendered yet.
-			$.mobile.silentScroll( toPage.jqmData( "lastScroll" ) || 0 );
-			$( document ).one( "silentscroll", function() { reFocus( toPage ); } );
-
+			
+			//reset the page's css TOP if it was set, and set the scrollTop back to that same value
+			//then send focus
+			if( newScrollTop || currScroll ){
+				toPage.css( "top", "" );
+				window.scrollTo( 0, newScrollTop );
+				reFocus( toPage );
+			}
+			
+			
 			//trigger show/hide events
 			if( fromPage ) {
 				fromPage.data( "page" )._trigger( "hide", null, { nextPage: toPage } );
