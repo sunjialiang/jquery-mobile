@@ -957,6 +957,9 @@
 	//bind to vclick to allow for early default prevention and changePage handling where touch events are supported. 
 	//Also prevents address bar from appearing by default on iOS.
 	//still bind to click for real click handling of non-ajax links, even on touch-supporting devices
+	//NOTE: if binding to vclick here introduces an issue, we don't necessarily have to do it this way
+		// all we need to do is add logic to the vclick handler above that calls preventDefault if the click 
+		// is going to be handled via ajax. The logic for that is included below, so we'd just need to abstract it.
 	$( document ).bind( "vclick click", function( event ) {
 		var link = findClosestLink( event.target );
 		if ( !link ) {
