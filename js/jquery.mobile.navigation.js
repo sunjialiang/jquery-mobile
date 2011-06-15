@@ -943,7 +943,8 @@
 
 
 	//click routing - direct to HTTP or Ajax, accordingly
-	//bind to vclick to allow for early default prevention on touch events.
+	//bind to vclick to allow for early default prevention and changePage handling where touch events are supported. 
+	//Also prevents address bar from appearing by default on iOS.
 	//still bind to click for real click handling of non-ajax links, even on touch-supporting devices
 	$( document ).bind( "vclick click", function( event ) {
 		var link = findClosestLink( event.target );
